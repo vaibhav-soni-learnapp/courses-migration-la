@@ -7,7 +7,7 @@ import datetime as dt
 from io import StringIO
 
 # set page config
-st.set_page_config(page_title="LearnApp", page_icon="favicon.png")
+st.set_page_config(page_title="LearnApp")
 
 # hide streamlit branding and hamburger menu
 hide_streamlit_style = """
@@ -35,6 +35,15 @@ st.markdown(
 )
 st.write("----")
 
+# Kraken Auth Token
+# functions for getting user specific course progress
+url = "https://e3d72bp6aa.execute-api.ap-south-1.amazonaws.com/"
+payload = {}
+headers = {}
+response = requests.request("GET", url, headers=headers, data=payload)
+access_token = response.text
+
+token = "Bearer " + access_token
 
 # Function to get the data of all the courses, classes, workshops and advanced courses on LearnApp
 # @st.cache()
@@ -116,4 +125,48 @@ def get_learnapp_content():
 
 
 
+
+# Function to get the key of any value in dictionary
+def get_key(val):
+    for key, value in courses.items():
+        if val == value:
+            return key
+
+
+# Code for fetching LA data and selecting the courses in the cohort
+content_data = get_learnapp_content()
+content_data.update(
+    {
+        "intro-to-trading-terminal": {
+            "title": "Intro to Trading Terminal",
+            "canonicalTitle": "intro-to-trading-terminal",
+            "id": "4fde29ab-6122-46fa-8247-19c26dccb25c",
+            "totalPlaybackTime": 4918,
+            "assetUrl": "https://assets.learnapp.com/catalog/courses/4fde29ab-6122-46fa-8247-19c26dccb25c/b63ad44d-e3fb-42aa-b7b4-cf474019f4bb.jpeg",
+            "contentType": "courses",
+        },
+        "which-type-of-trader-are-you": {
+            "title": "Which type of trader are you?",
+            "canonicalTitle": "which-type-of-trader-are-you",
+            "id": "ad2b81ed-b70f-43fc-a3e0-040f46f5f287",
+            "totalPlaybackTime": 1155,
+            "assetUrl": "https://assets.learnapp.com/catalog/workshops/ad2b81ed-b70f-43fc-a3e0-040f46f5f287/2a5f4959-b790-4355-9e63-36a153070349.jpeg",
+            "contentType": "workshop",
+        },
+    }
+)
+
+content_type = st.multiselect("Select Content Type",["courses","classes","workshops","advanced-courses"])
+selected_content_data = {key:content_data[key] for key in content_data if content_data[key]["contentType"] in content_type}
+
+
+courses = {}
+
+courses_list = st.multiselect(
+    "Create a module by selecting any course/class/workshop/advanced course",
+    selected_content_data.keys(),
+)
+
+courses = {i: selected_content_data[i]["id"] for i in selected_content_data if i in courses_list}
+st.write("")
 
